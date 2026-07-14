@@ -6,10 +6,15 @@ export const STUDENT  = { user: process.env.STUDENT_USER   ?? 'estudiante01',  p
 
 export async function login(page: Page, creds: { user: string; pass: string }): Promise<void> {
   await page.goto('/login/index.php');
+  // Moodle's ToggleSensitive module replaces the password <input> via async AJAX template render.
+  // networkidle ensures the AJAX template request has completed and the new input is in the DOM
+  // before we fill the password — otherwise the fill value is lost when the element is swapped.
+  await page.waitForLoadState('networkidle', { timeout: 60_000 });
   await page.fill('#username', creds.user);
   await page.fill('#password', creds.pass);
   await page.click('#loginbtn');
-  await page.waitForURL(/\/my\/|\/dashboard|\/course\//);
+  // 'commit' fires as soon as the redirect URL is received (before full page load)
+  await page.waitForURL(/\/my\/|\/dashboard|\/course\//, { waitUntil: 'commit', timeout: 120_000 });
 }
 
 export async function logout(page: Page): Promise<void> {

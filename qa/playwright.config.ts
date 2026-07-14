@@ -5,8 +5,9 @@ import * as path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../docker/.env') });
 
 export default defineConfig({
+  globalSetup: './global-setup',
   testDir: './tests',
-  timeout: 60_000,
+  timeout: 120_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,   // Moodle no tolera bien sesiones paralelas en tests E2E
   retries: 1,

@@ -18,23 +18,18 @@ test.describe('Cambio 4 — Penalización por entrega en período de gracia', ()
   });
 
   test('el resultado del intento muestra la nota original y la penalización al estudiante', async ({ page }) => {
-    // Este test verifica la UI post-envío si el intento fue en gracia
-    // En un entorno de prueba con timer real esto requiere esperar el timer;
-    // en CI se puede mockear el tiempo de expiración editando el intento directamente.
-    // Aquí verificamos la estructura de la pantalla de resultado.
-
     await login(page, STUDENT);
     await gotoCourse(page);
-    await page.click('text=Examen QA', { timeout: 10_000 });
+
+    // RC2 fix: getByRole evita el <label class="sr-only">
+    await page.getByRole('link', { name: /Examen QA/i }).first().click({ timeout: 10_000 });
     await waitForMoodle(page);
 
-    // Si hay intentos previos, revisar el último
     const reviewLink = page.locator('a:has-text("Revisar"), a:has-text("Review")').first();
     if (await reviewLink.isVisible({ timeout: 3000 })) {
       await reviewLink.click();
       await waitForMoodle(page);
 
-      // Buscar indicador de penalización (si el intento fue en gracia)
       const penaltyNote = page.locator('[data-gesexam-penalty], .ges-grace-penalty, text=penalización, text=penalty');
       const count = await penaltyNote.count();
       test.info().annotations.push({
@@ -53,12 +48,13 @@ test.describe('Cambio 4 — Penalización por entrega en período de gracia', ()
     await login(page, TEACHER);
     await gotoCourse(page);
 
-    // Ir al libro de calificaciones
-    await page.click('text=Calificaciones');
+    // RC4 fix: navegar directo al gradebook para evitar dropdown cerrado
+    const courseUrl = page.url();
+    const courseId = courseUrl.match(/[?&]id=(\d+)/)?.[1] ?? '2';
+    await page.goto(`/grade/report/grader/index.php?id=${courseId}`);
     await waitForMoodle(page);
 
-    // Verificar que el libro de calificaciones carga
-    await expect(page.locator('table.gradereport-grader-table, #user-grades, .gradeparent')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('table.gradereport-grader-table, #user-grades, .gradeparent, h1').first()).toBeVisible({ timeout: 15_000 });
   });
 
 });

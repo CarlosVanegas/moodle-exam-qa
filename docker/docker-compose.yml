@@ -18,7 +18,9 @@ services:
       retries: 10
 
   moodle:
-    image: bitnami/moodle:4.3
+    build:
+      context: .
+      dockerfile: Dockerfile.moodle
     container_name: ges_moodle
     depends_on:
       mariadb:
@@ -32,10 +34,11 @@ services:
       MOODLE_DATABASE_NAME: ${MOODLE_DATABASE_NAME}
       MOODLE_DATABASE_USER: ${MOODLE_DATABASE_USER}
       MOODLE_DATABASE_PASSWORD: ${MOODLE_DATABASE_PASSWORD}
-      MOODLE_SKIP_BOOTSTRAP: no
+      MOODLE_WWWROOT: http://localhost:8080
     volumes:
-      - moodle_data:/bitnami/moodledata
-      - ../plugin/local_gesexam:/bitnami/moodle/local/gesexam:ro
+      - moodle_code:/var/www/html
+      - moodle_data:/var/moodledata
+      - ../plugin/local_gesexam:/var/www/html/local/gesexam:ro
     ports:
       - "8080:8080"
     networks:
@@ -43,12 +46,14 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/login/index.php"]
       interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 120s
+      timeout: 15s
+      retries: 30
+      start_period: 600s
 
   seed:
-    image: bitnami/moodle:4.3
+    build:
+      context: .
+      dockerfile: Dockerfile.moodle
     container_name: ges_seed
     depends_on:
       moodle:
@@ -59,8 +64,9 @@ services:
       MOODLE_DATABASE_USER: ${MOODLE_DATABASE_USER}
       MOODLE_DATABASE_PASSWORD: ${MOODLE_DATABASE_PASSWORD}
     volumes:
-      - moodle_data:/bitnami/moodledata
-      - ../plugin/local_gesexam:/bitnami/moodle/local/gesexam:ro
+      - moodle_code:/var/www/html
+      - moodle_data:/var/moodledata
+      - ../plugin/local_gesexam:/var/www/html/local/gesexam:ro
       - ./seed:/seed:ro
     entrypoint: ["/bin/bash", "/seed/seed.sh"]
     networks:
@@ -80,6 +86,7 @@ services:
 
 volumes:
   mariadb_data:
+  moodle_code:
   moodle_data:
 
 networks:

@@ -10,7 +10,7 @@
         <FIELD NAME="userid"      TYPE="int"  LENGTH="10" NOTNULL="true"/>
         <FIELD NAME="focuslosses" TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0"/>
         <FIELD NAME="timecreated" TYPE="int"  LENGTH="10" NOTNULL="true"/>
-        <FIELD NAME="timemodified"TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="timemodified" TYPE="int"  LENGTH="10" NOTNULL="true"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -31,7 +31,7 @@
         <FIELD NAME="response"   TYPE="text"                 NOTNULL="false"/>
         <FIELD NAME="attempts"   TYPE="int"    LENGTH="10"   NOTNULL="true" DEFAULT="1"/>
         <FIELD NAME="success"    TYPE="int"    LENGTH="1"    NOTNULL="true" DEFAULT="0"/>
-        <FIELD NAME="timecreated"TYPE="int"    LENGTH="10"   NOTNULL="true"/>
+        <FIELD NAME="timecreated" TYPE="int"    LENGTH="10"   NOTNULL="true"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

@@ -5,7 +5,10 @@ export const COURSE_SHORTNAME = 'QA-GES-001';
 /** Navega al curso por shortname */
 export async function gotoCourse(page: Page): Promise<void> {
   await page.goto(`/course/search.php?search=${COURSE_SHORTNAME}`);
-  await page.click(`text=${COURSE_SHORTNAME}`);
+  await page.waitForLoadState('networkidle');
+  // Click the first course result link (course full name, not shortname)
+  await page.locator('.coursebox a, [data-region="course-content"] a').first().click();
+  await page.waitForLoadState('networkidle');
 }
 
 /** Espera a que desaparezca el spinner de Moodle */
