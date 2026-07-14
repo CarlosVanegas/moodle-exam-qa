@@ -1,0 +1,87 @@
+services:
+  mariadb:
+    image: mariadb:10.6
+    container_name: ges_mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - moodle_net
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  moodle:
+    image: bitnami/moodle:4.3
+    container_name: ges_moodle
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      MOODLE_USERNAME: ${MOODLE_USERNAME}
+      MOODLE_PASSWORD: ${MOODLE_PASSWORD}
+      MOODLE_EMAIL: ${MOODLE_EMAIL}
+      MOODLE_SITE_NAME: ${MOODLE_SITE_NAME}
+      MOODLE_DATABASE_HOST: ${MOODLE_DATABASE_HOST}
+      MOODLE_DATABASE_NAME: ${MOODLE_DATABASE_NAME}
+      MOODLE_DATABASE_USER: ${MOODLE_DATABASE_USER}
+      MOODLE_DATABASE_PASSWORD: ${MOODLE_DATABASE_PASSWORD}
+      MOODLE_SKIP_BOOTSTRAP: no
+    volumes:
+      - moodle_data:/bitnami/moodledata
+      - ../plugin/local_gesexam:/bitnami/moodle/local/gesexam:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - moodle_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login/index.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  seed:
+    image: bitnami/moodle:4.3
+    container_name: ges_seed
+    depends_on:
+      moodle:
+        condition: service_healthy
+    environment:
+      MOODLE_DATABASE_HOST: ${MOODLE_DATABASE_HOST}
+      MOODLE_DATABASE_NAME: ${MOODLE_DATABASE_NAME}
+      MOODLE_DATABASE_USER: ${MOODLE_DATABASE_USER}
+      MOODLE_DATABASE_PASSWORD: ${MOODLE_DATABASE_PASSWORD}
+    volumes:
+      - moodle_data:/bitnami/moodledata
+      - ../plugin/local_gesexam:/bitnami/moodle/local/gesexam:ro
+      - ./seed:/seed:ro
+    entrypoint: ["/bin/bash", "/seed/seed.sh"]
+    networks:
+      - moodle_net
+
+  webhook-receiver:
+    image: node:20-alpine
+    container_name: ges_webhook
+    working_dir: /app
+    volumes:
+      - ./webhook-receiver:/app
+    command: node server.js
+    ports:
+      - "3001:3001"
+    networks:
+      - moodle_net
+
+volumes:
+  mariadb_data:
+  moodle_data:
+
+networks:
+  moodle_net:
+    driver: bridge

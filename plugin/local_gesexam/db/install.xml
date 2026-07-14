@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/gesexam/db" VERSION="20260713" COMMENT="GES Exam Extensions schema">
+  <TABLES>
+
+    <!-- Cambio 2: eventos de pérdida de foco por intento -->
+    <TABLE NAME="local_gesexam_focus" COMMENT="Focus loss events per quiz attempt">
+      <FIELDS>
+        <FIELD NAME="id"          TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="attemptid"   TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="userid"      TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="focuslosses" TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timecreated" TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="timemodified"TYPE="int"  LENGTH="10" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="attemptid" UNIQUE="true" FIELDS="attemptid"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Cambio 3: log de envíos al webhook externo -->
+    <TABLE NAME="local_gesexam_webhook_log" COMMENT="Webhook delivery log">
+      <FIELDS>
+        <FIELD NAME="id"         TYPE="int"    LENGTH="10"   NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="attemptid"  TYPE="int"    LENGTH="10"   NOTNULL="true"/>
+        <FIELD NAME="url"        TYPE="char"   LENGTH="1333" NOTNULL="true"/>
+        <FIELD NAME="payload"    TYPE="text"                 NOTNULL="true"/>
+        <FIELD NAME="httpcode"   TYPE="int"    LENGTH="10"   NOTNULL="false"/>
+        <FIELD NAME="response"   TYPE="text"                 NOTNULL="false"/>
+        <FIELD NAME="attempts"   TYPE="int"    LENGTH="10"   NOTNULL="true" DEFAULT="1"/>
+        <FIELD NAME="success"    TYPE="int"    LENGTH="1"    NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timecreated"TYPE="int"    LENGTH="10"   NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="attemptid" UNIQUE="false" FIELDS="attemptid"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Cambio 4: penalizaciones por período de gracia -->
+    <TABLE NAME="local_gesexam_penalties" COMMENT="Grace period penalties">
+      <FIELDS>
+        <FIELD NAME="id"            TYPE="int"    LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="attemptid"     TYPE="int"    LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="userid"        TYPE="int"    LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="originalgrade" TYPE="number" LENGTH="10"  NOTNULL="true" DECIMALS="5"/>
+        <FIELD NAME="penaltypct"    TYPE="int"    LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="penaltyamt"    TYPE="number" LENGTH="10"  NOTNULL="true" DECIMALS="5"/>
+        <FIELD NAME="finalgrade"    TYPE="number" LENGTH="10"  NOTNULL="true" DECIMALS="5"/>
+        <FIELD NAME="timecreated"   TYPE="int"    LENGTH="10"  NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="attemptid" UNIQUE="true" FIELDS="attemptid"/>
+      </INDEXES>
+    </TABLE>
+
+  </TABLES>
+</XMLDB>

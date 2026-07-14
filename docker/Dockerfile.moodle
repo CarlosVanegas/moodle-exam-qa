@@ -1,0 +1,47 @@
+FROM php:8.2-apache
+
+# Extensiones PHP requeridas por Moodle 4.x
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+        curl libzip-dev libpng-dev libjpeg62-turbo-dev libwebp-dev \
+        libfreetype6-dev libxml2-dev libicu-dev libonig-dev libpq-dev \
+        default-mysql-client unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) \
+        gd zip pdo pdo_mysql mysqli intl soap mbstring opcache exif ctype \
+    && a2enmod rewrite \
+    && rm -rf /var/lib/apt/lists/*
+
+# PHP settings para Moodle
+RUN { \
+        echo 'max_input_vars = 5000'; \
+        echo 'upload_max_filesize = 50M'; \
+        echo 'post_max_size = 50M'; \
+        echo 'memory_limit = 256M'; \
+        echo 'max_execution_time = 300'; \
+        echo 'session.save_handler = files'; \
+    } > /usr/local/etc/php/conf.d/moodle.ini
+
+# Apache: permitir .htaccess, usar puerto 8080 igual que Bitnami
+RUN sed -i 's/Listen 80$/Listen 8080/' /etc/apache2/ports.conf \
+    && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' \
+        /etc/apache2/sites-enabled/000-default.conf \
+    && echo '<Directory /var/www/html>\n    AllowOverride All\n    Require all granted\n</Directory>' \
+        > /etc/apache2/conf-enabled/moodle.conf
+
+# Descargar Moodle 4.4 a /moodle-src (staging — no al webroot que será un volumen)
+ENV MOODLE_VERSION=4.4.1
+RUN mkdir -p /moodle-src \
+    && curl -fsSL \
+        "https://download.moodle.org/download.php/direct/stable404/moodle-${MOODLE_VERSION}.tgz" \
+        | tar -xz --strip-components=1 -C /moodle-src \
+    && chown -R www-data:www-data /moodle-src
+
+# Directorio de datos de Moodle
+RUN mkdir -p /var/moodledata && chown -R www-data:www-data /var/moodledata
+
+EXPOSE 8080
+
+COPY moodle-entrypoint.sh /moodle-entrypoint.sh
+RUN chmod +x /moodle-entrypoint.sh
+ENTRYPOINT ["/moodle-entrypoint.sh"]
+CMD ["apache2-foreground"]
