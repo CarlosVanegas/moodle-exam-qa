@@ -1,7 +1,7 @@
 node_modules/
-qa/playwright-report/
 qa/test-results/
 qa/.playwright/
+qa/.auth/
 docker/.env
 *.log
 .DS_Store
